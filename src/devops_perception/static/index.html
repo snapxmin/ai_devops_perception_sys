@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Deterministic AI DevOps perception console">
+    <title>Perception Operations Console</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/control.js" defer></script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to operations console</a>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">AI DevOps Perception</p>
+        <h1>Operations Console</h1>
+      </div>
+      <div class="system-status" aria-live="polite">
+        <span id="connection-dot" class="status-dot pending" aria-hidden="true"></span>
+        <span id="connection-status">Connecting</span>
+        <span class="divider" aria-hidden="true"></span>
+        <span id="scenario-status">Loading scenario</span>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section id="controls" class="control-bar" aria-labelledby="controls-title">
+        <div class="control-heading">
+          <p class="eyebrow">Replay control</p>
+          <h2 id="controls-title">Scenario playback</h2>
+        </div>
+        <label>
+          <span>Scenario</span>
+          <select id="scenario-select" aria-label="Scenario"></select>
+        </label>
+        <div class="button-group" aria-label="Playback controls">
+          <button id="play-button" type="button" title="Play (P)">Play</button>
+          <button id="pause-button" type="button">Pause</button>
+          <button id="step-button" type="button" title="Step (Space)">Step</button>
+          <button id="reset-button" type="button">Reset</button>
+        </div>
+        <label class="compact-control">
+          <span>Speed</span>
+          <select id="speed-select" aria-label="Playback speed">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+            <option value="5">5×</option>
+            <option value="20">20×</option>
+          </select>
+        </label>
+        <form id="rebuild-form" class="rebuild-form">
+          <label>
+            <span>Rebuild position</span>
+            <input id="rebuild-position" type="number" min="0" step="1"
+              placeholder="End" aria-label="Rebuild position">
+          </label>
+          <button id="rebuild-button" type="submit">Rebuild</button>
+        </form>
+      </section>
+
+      <section class="summary-row" aria-label="Playback summary">
+        <article class="metric-card">
+          <span>Status</span><strong id="playback-status">—</strong>
+        </article>
+        <article class="metric-card">
+          <span>Position</span><strong id="playback-position">0 / 0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Progress</span><strong id="playback-progress">0%</strong>
+        </article>
+        <article class="metric-card">
+          <span>Perceived at</span><strong id="current-time">—</strong>
+        </article>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="panel state-panel" aria-labelledby="state-title">
+          <header class="panel-header">
+            <div><p class="eyebrow">Materialized facts</p><h2 id="state-title">State</h2></div>
+            <span id="state-count" class="count">0</span>
+          </header>
+          <div id="state-grid" class="state-grid" aria-live="polite">
+            <article class="state-card category-card" data-state-category="build">
+              <h3>Build</h3>
+              <div class="fact"><span>Status</span><code id="state-build-status">Not observed</code></div>
+            </article>
+            <article class="state-card category-card" data-state-category="release">
+              <h3>Release</h3>
+              <div class="fact"><span>Deployment</span><code id="state-release-status">Not observed</code></div>
+              <div class="fact"><span>Version</span><code id="state-release-version">Not observed</code></div>
+            </article>
+            <article class="state-card category-card" data-state-category="service-health">
+              <h3>Service health</h3>
+              <div class="fact"><span>Status</span><code id="state-service-status">Not observed</code></div>
+              <div class="fact"><span>Latency</span><code id="state-service-latency">Not observed</code></div>
+              <div class="fact"><span>Error rate</span><code id="state-service-errors">Not observed</code></div>
+            </article>
+            <article class="state-card category-card" data-state-category="incident">
+              <h3>Incident</h3>
+              <div class="fact"><span>Status</span><code id="state-incident-status">No active incident</code></div>
+            </article>
+            <article class="state-card category-card" data-state-category="security">
+              <h3>Security</h3>
+              <div class="fact"><span>Secret</span><code id="state-secret-status">Not observed</code></div>
+              <div class="fact"><span>Gate</span><code id="state-gate-status">Not observed</code></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel timeline-panel" aria-labelledby="timeline-title">
+          <header class="panel-header">
+            <div><p class="eyebrow">Canonical sequence</p><h2 id="timeline-title">Timeline</h2></div>
+            <span id="timeline-count" class="count">0</span>
+          </header>
+          <ol id="timeline" class="timeline" aria-live="polite"></ol>
+        </section>
+
+        <section class="panel graph-panel" aria-labelledby="graph-title">
+          <header class="panel-header">
+            <div><p class="eyebrow">Causal topology</p><h2 id="graph-title">Directed graph</h2></div>
+            <span id="graph-count" class="count">0</span>
+          </header>
+          <div class="graph-viewport">
+            <svg id="graph" role="img" aria-label="Directed perception graph"
+              aria-describedby="graph-summary" viewBox="0 0 900 500">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z"></path>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <details class="graph-text">
+            <summary>Text description of graph</summary>
+            <div id="graph-description">
+              <p id="graph-summary" aria-live="polite">No graph nodes or relationships perceived yet.</p>
+              <h3>Nodes</h3>
+              <ul id="graph-node-list"><li>None</li></ul>
+              <h3>Relationships</h3>
+              <ul id="graph-relationship-list"><li>None</li></ul>
+            </div>
+          </details>
+        </section>
+
+        <section class="panel insight-panel" aria-labelledby="insights-title">
+          <header class="panel-header">
+            <div><p class="eyebrow">Explainable rules</p><h2 id="insights-title">Insights</h2></div>
+            <span id="insight-count" class="count">0</span>
+          </header>
+          <div id="insights" class="insights" aria-live="polite"></div>
+        </section>
+
+        <section class="panel context-panel" aria-labelledby="context-title">
+          <header class="panel-header">
+            <div><p class="eyebrow">Agent interface</p><h2 id="context-title">JSON context</h2></div>
+            <button id="copy-context" class="quiet-button" type="button">Copy JSON</button>
+          </header>
+          <pre id="context" tabindex="0" aria-label="Current JSON context">{}</pre>
+        </section>
+      </div>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
