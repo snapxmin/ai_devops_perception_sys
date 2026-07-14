@@ -1,0 +1,6 @@
+fastapi
+pydantic>=2
+
+[test]
+pytest
+pytest-asyncio
